@@ -7,10 +7,13 @@ on:
     types:
       - created
 env:
-  TZ: 'Asia/Tokyo'
+  TZ: "Asia/Tokyo"
+  WSH_SCORING_DEBUG: "true"
+  WSH_SCORING_TARGET_PATHS: '["/"]'
+
 jobs:
   register:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     if: |
       contains(github.event.issue.labels.*.name, 'registration') && (
@@ -18,23 +21,395 @@ jobs:
           github.event_name == 'issue_comment' &&
           !github.event.issue.pull_request &&
           contains(github.event.comment.body, '/retry') &&
-          (github.actor == github.event.issue.user.login || github.actor == '3846masa')
+          (github.actor == github.event.issue.user.login || github.actor == 'a01sa01to')
         )
       )
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # renovate: tag=v3.3.0
+      - name: Initialize
+        uses: actions/github-script@v7.0.1
         with:
-          repository: CyberAgentHack/web-speed-hackathon-2023-scoring-tool-workspace
-          ssh-key: ${{ secrets.CHECKOUT_WORKSPACE }}
-      - uses: pnpm/action-setup@c3b53f6a16e57305370b4ae5a540c2077a1d50dd # renovate: tag=v2.2.4
+          script: |
+            octokit.rest.issues.update({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[スコア] @${context.actor}`,
+            });
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        if: github.event_name == 'issues'
         with:
-          version: 7.25.0
-      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # renovate: tag=v3.6.0
+          script: |
+            octokit.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `**@${{ github.event.issue.user.login }} ようこそ Maximum WSH 2023 (for 2025) へ！**
+            - :racing_car: これから自動でスコアが計測されて、リーダーボードに反映されます
+            - :information_source: 計測中に、解決できない問題が発生した場合、 a01sa01to にご連絡ください
+            - :information_source: 計測先 URL を変更するなど、登録内容を変更する場合は、 issue を閉じて作り直してください`,
+            });
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        id: report-comment
         with:
-          node-version-file: '.node-version'
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm start
+          result-encoding: string
+          script: |
+            const comment = await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `:hourglass_flowing_sand: **計測する準備をしています**`,
+            });
+
+            return comment.data.id;
+      - name: Parse issue's description
+        id: parse
+        uses: peter-murray/issue-forms-body-parser@v4.2.1
+        with:
+          issue_id: ${{ github.event.issue.number }}
+          label_marker_start: "{{"
+          label_marker_end: "}}"
+      - name: Create payload
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+
+            const url = new URL(`${process.env.TARGET_URL}`);
+
+            const payload = {
+              id: process.env.USER_ID,
+              url: url.href,
+              issue_number: context.issue.number,
+              report_comment_id: process.env.REPORT_COMMENT_ID,
+              request_time: process.env.REQUEST_TIME,
+            };
+
+            if (!['http:', 'https:'].includes(url.protocol)) {
+              console.error('Invalid url: %s', payload.url);
+              process.exit(1);
+            }
+
+            fs.writeFileSync('/tmp/payload.json', JSON.stringify(payload), 'utf-8');
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCORE_SERVER_AUTH_TOKEN: ${{ secrets.SCORE_SERVER_AUTH_TOKEN }}
+          USER_ID: ${{ github.event.issue.user.login }}
+          TARGET_URL: ${{ fromJSON(steps.parse.outputs.payload).url }}
+          REPORT_COMMENT_ID: ${{ steps.report-comment.outputs.result }}
+          REQUEST_TIME: ${{ (github.event_name == 'issues' && github.event.issue.created_at) || github.event.comment.created_at }}
+      - name: Upload payload
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: payload.json
+          path: /tmp/payload.json
+          retention-days: 1
+      - name: Failure message
+        if: failure()
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            github.rest.issues.updateComment({
+              comment_id: ${{ steps.report-comment.outputs.result }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `:exclamation: **登録内容を読み込めませんでした**
+
+            次を確認して、もう一度 issue を作り直してください
+
+            - URL が間違っていませんか
+              - `http://` もしくは `https://` から始まる URL を入力してください
+            - issue の description を編集していませんか
+              - issue の description から登録情報を読み込むため、編集しないでください
+
+            ---
+
+            :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
+            });
+
+  payload:
+    runs-on: ubuntu-latest
+    needs:
+      - register
+    outputs:
+      competition-status: ${{ steps.status.outputs.result }}
+      result: ${{ steps.payload.outputs.result }}
+    steps:
+      - name: Download payload
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: payload.json
+          path: /tmp
+      - name: Read payload
+        uses: actions/github-script@v7.0.1
+        id: payload
+        with:
+          result-encoding: json
+          script: |
+            const payload = require('/tmp/payload.json');
+            return payload;
+      - name: Check competition status
+        uses: actions/github-script@v7.0.1
+        id: status
+        with:
+          result-encoding: string
+          script: |
+            const payload = require('/tmp/payload.json');
+
+            const startAt = new Date('2025-02-08T10:00:00.000+09:00');
+            const endAt = new Date('2025-03-31T23:59:59.999+09:00');
+            const requestedAt = new Date(payload.request_time);
+
+            if (requestedAt < startAt || endAt < requestedAt) {
+              return 'closed';
+            }
+            return 'opened';
+
+  scoring:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+    outputs:
+      result: ${{ steps.scoring.outputs.export }}
+    concurrency: scoring-${{ fromJSON(needs.payload.outputs.result).id }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.2.0
+        with:
+          node-version: "22"
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: sudo apt-get install -y fonts-noto-cjk
+      - name: Scoring
+        id: scoring
+        run: |
+          yarn run scoring \
+            --id ${TARGET_ID} \
+            --url ${TARGET_URL}
+        env:
+          TARGET_ID: ${{ fromJSON(needs.payload.outputs.result).id }}
+          TARGET_URL: ${{ fromJSON(needs.payload.outputs.result).url }}
+
+  update:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+      - scoring
+    outputs:
+      result: ${{ steps.update.outputs.export }}
+    concurrency: update-leader-board
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          ref: main
+      - uses: actions/setup-node@v4.2.0
+        with:
+          node-version: "22"
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - name: Update leader board
+        id: update
+        run: |
+          yarn run update \
+            --markdown ${GITHUB_WORKSPACE}/README.md \
+            --score-csv ${GITHUB_WORKSPACE}/score.csv \
+            --id ${TARGET_ID} \
+            --url ${TARGET_URL} \
+            --score ${TARGET_SCORE}
+        env:
+          TARGET_ID: ${{ fromJSON(needs.payload.outputs.result).id }}
+          TARGET_URL: ${{ fromJSON(needs.payload.outputs.result).url }}
+          TARGET_SCORE: ${{ fromJSON(needs.scoring.outputs.result).result.score }}
+      - name: Commit leader board
+        uses: stefanzweifel/git-auto-commit-action@v5.1.0
+        with:
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+
+  comment-payload:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+    steps:
+      - name: Competition is Closed Comment
+        uses: actions/github-script@v7.0.1
+        if: needs.payload.outputs.competition-status != 'opened'
+        with:
+          script: |
+            octokit.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `:warning: **スコアを計測できませんでした**
+
+            コンテスト開催前、もしくは、コンテストが終了しています
+
+            ---
+
+            :information_source: \`/retry\` とコメントすると、もう一度計測ができます
+            :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
+            });
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        if: needs.payload.outputs.competition-status == 'opened'
+        with:
+          script: |
+            octokit.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `## スコア
+
+            :hourglass_flowing_sand: **計測中です...**
+
+            ---
+
+            Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>`,
+            });
+
+  comment-failure-scoring:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+      - scoring
+    if: always() && needs.scoring.result == 'failure'
+    steps:
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            octokit.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `## スコア
+
+            :exclamation: **Lighthouse の計測ができませんでした**
+
+            次を確認してください
+
+            - URL が間違っていませんか
+            - 計測対象のページは、誰でも閲覧できるようになっていますか
+            - エラーページ以外では、ステータスコードが 200 で返却されますか
+
+            ---
+
+            Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+
+            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください
+
+  comment-scoring:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+      - scoring
+    steps:
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            octokit.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `## スコア
+
+            スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
+
+            :hourglass_flowing_sand: リーダーボードを更新中です...
+
+            <details>
+            <summary>buildInfo</summary>
+
+            \`\`\`json
+            ${{ toJSON(fromJSON(needs.scoring.outputs.result).buildInfo) }}
+            \`\`\`
+
+            </details>
+
+            ---
+
+            Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>`,
+            });
+
+  comment-failure-update:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+      - scoring
+      - update
+      - comment-scoring
+    if: always() && needs.update.result == 'failure'
+    steps:
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            octokit.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `## スコア
+
+            スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
+
+            :exclamation: **リーダーボードが更新できませんでした**
+
+            <details>
+            <summary>buildInfo</summary>
+
+            \`\`\`json
+            ${{ toJSON(fromJSON(needs.scoring.outputs.result).buildInfo) }}
+            \`\`\`
+
+            </details>
+
+            ---
+
+            Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+
+            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
+            });
+
+  comment-update:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+      - scoring
+      - update
+      - comment-scoring
+    steps:
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            octokit.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `## スコア
+
+            スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
+
+            現在、**${{ fromJSON(needs.update.outputs.result).rank }} 位**です
+
+            <details>
+            <summary>buildInfo</summary>
+
+            \`\`\`json
+            ${{ toJSON(fromJSON(needs.scoring.outputs.result).buildInfo) }}
+            \`\`\`
+
+            </details>
+
+            ---
+
+            Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+
+            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
+            });
