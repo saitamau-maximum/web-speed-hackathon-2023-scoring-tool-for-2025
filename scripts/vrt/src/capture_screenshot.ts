@@ -27,7 +27,7 @@ export async function captureScreenshot({ url, width, height }: Params): Promise
     await page.evaluateOnNewDocument(await fs.readFile(path.join(__dirname, './mockdate.js'), 'utf-8'));
 
     await page.goto(url, {
-      timeout: 10 * 60 * 1000,
+      timeout: 60 * 1000,
       waitUntil: 'networkidle0',
     });
 
@@ -56,7 +56,7 @@ export async function captureScreenshot({ url, width, height }: Params): Promise
     });
 
     await page.waitForFunction('window.__DEBUG__REACHED_BOTTOM === true', {
-      timeout: 10 * 90 * 1000,
+      timeout: 90 * 1000,
       polling: 1000,
     });
 
