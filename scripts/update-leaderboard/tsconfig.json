@@ -4,9 +4,9 @@
     "lib": [
       "esnext"
     ],
-    "module": "commonjs",
+    "module": "Node16",
     "rootDir": "./src",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "types": [
       "@types/node"
     ],

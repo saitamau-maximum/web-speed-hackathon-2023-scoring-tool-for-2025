@@ -22,9 +22,7 @@ async function main() {
     url: argv.url,
   };
 
-  const targetPaths = JSON.parse(
-    process.env["WSH_SCORING_TARGET_PATHS"] as string
-  );
+  const targetPaths = ["/", "/product/1", "/foo"];
 
   const result = await scoring(competitor, targetPaths);
 

@@ -10,7 +10,7 @@ export async function fetchBuildInfo(competitor: Competitor): Promise<BuildInfo 
   });
 
   try {
-    const context = await browser.createIncognitoBrowserContext();
+    const context = await browser.createBrowserContext();
     const page = await context.newPage();
 
     await page.goto(competitor.url);

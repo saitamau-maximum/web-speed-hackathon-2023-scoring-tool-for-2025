@@ -1,4 +1,4 @@
-import { isErr } from 'option-t/cjs/PlainResult';
+import { isErr } from 'option-t/plain_result';
 
 import type { Competitor, MeasurementResult } from './types';
 import { fetchBuildInfo } from './fetch_build_info';

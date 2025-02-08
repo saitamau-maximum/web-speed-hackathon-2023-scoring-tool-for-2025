@@ -1,21 +1,19 @@
-import { URL } from 'url';
-// @ts-expect-error
-import lighthouse from 'lighthouse';
+import { URL } from 'node:url';
 import axios from 'axios';
-import { createErr, createOk, Result } from 'option-t/cjs/PlainResult';
-import * as chromeLauncher from 'chrome-launcher';
+import { createErr, createOk, type Result } from 'option-t/plain_result';
 
 import type { Competitor, HackathonScore, LighthouseScore, LighthouseScoreList } from './types';
 import { logger } from './logger';
 
 async function measurePage(url: string): Promise<LighthouseScore> {
+  const chromeLauncher = await import('chrome-launcher');
   const chrome = await chromeLauncher.launch({
     chromeFlags: ['--headless', '--no-sandbox', '--hide-scrollbars'],
   });
 
   const settings = {
-    logLevel: 'error',
-    output: 'json',
+    logLevel: 'error' as const,
+    output: 'json' as const,
     onlyCategories: ['performance'],
     onlyAudits: [
       'first-contentful-paint',
@@ -32,21 +30,23 @@ async function measurePage(url: string): Promise<LighthouseScore> {
   };
 
   try {
+    const lighthouse = (await import('lighthouse')).default;
     const runnerResult = await lighthouse(url, settings, config);
+    if (!runnerResult) throw new Error('Lighthouse failed to run.');
     const lhr = runnerResult.lhr;
     const result: LighthouseScore = {
       score: (lhr.categories.performance?.score ?? 0) * 100,
       firstContentfulPaint: lhr.audits['first-contentful-paint']?.score ?? 0,
       speedIndex: lhr.audits['speed-index']?.score ?? 0,
       largestContentfulPaint: lhr.audits['largest-contentful-paint']?.score ?? 0,
-      timeToInteractive: lhr.audits['interactive']?.score ?? 0,
+      timeToInteractive: lhr.audits.interactive?.score ?? 0,
       totalBlockingTime: lhr.audits['total-blocking-time']?.score ?? 0,
       cumulativeLayoutShift: lhr.audits['cumulative-layout-shift']?.score ?? 0,
     };
 
     return result;
   } finally {
-    await chrome.kill();
+    chrome.kill();
   }
 }
 
@@ -125,10 +125,7 @@ export async function measureCompetitor(
 
     return createOk(hackathonScore);
   } catch (e: unknown) {
-    if (e instanceof Error) {
-      return createErr(e);
-    } else {
-      return createErr(new Error('unexpected error.'));
-    }
+    if (e instanceof Error) return createErr(e);
+    return createErr(new Error('unexpected error.'));
   }
 }

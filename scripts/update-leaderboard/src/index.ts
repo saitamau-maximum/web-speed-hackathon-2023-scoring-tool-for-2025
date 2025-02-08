@@ -1,5 +1,5 @@
-import fs from "fs/promises";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 import yargs from "yargs";
 import { parse as parseCSV } from "csv-parse/sync";
 import { stringify as stringifyCSV } from "csv-stringify/sync";
@@ -7,12 +7,6 @@ import { stringify as stringifyCSV } from "csv-stringify/sync";
 import { logger } from "./logger";
 
 import type { CSVRow } from "./types";
-
-import { generateGraphFromLog } from "./graph";
-import { EmbedBuilder, WebhookClient } from "discord.js";
-
-const DISCORD_WEBHOOK_URL =
-  "https://discord.com/api/webhooks/1206400364652535838/FSKvZHM6fSpJgA4pOrGu-lW8cTnuhl7h-FG9mGDjgRKzhVdV4fVljF9dYfaF0xUEqqBU";
 
 const findRoot = async () => {
   let currentPath = process.cwd();
@@ -94,7 +88,7 @@ async function main() {
   );
 
   for (let idx = 0; idx < sortedScoreList.length; idx++) {
-    const item = sortedScoreList[idx]!;
+    const item = sortedScoreList[idx];
     const prevItem = sortedScoreList[idx - 1];
 
     if (prevItem && item.score === prevItem.score) {
@@ -141,41 +135,6 @@ async function main() {
     header: true,
   });
   await fs.writeFile(argv["score-csv"], csv, "utf-8");
-
-  const leaderBoardDiscordMarkdown = `
-## Leaderboard更新情報
-
-${sortedScoreList
-      .filter((s) => s.rank <= 10)
-      .map((item) => {
-        return `**${item.rank}**位: **${Number(item.score).toFixed(2)}** [${item.competitorId
-          }](${item.url})`;
-      })
-      .join("\n")}
-`;
-
-  const webhookClient = new WebhookClient({ url: DISCORD_WEBHOOK_URL });
-
-  const embed = new EmbedBuilder()
-    .setTitle("Leaderboard更新情報")
-    .setDescription(leaderBoardDiscordMarkdown)
-    .setColor("#0099ff");
-
-  await webhookClient.send({ embeds: [embed] });
-
-  const buffer = await generateGraphFromLog();
-  fs.writeFile("graph.png", buffer);
-
-  await webhookClient.send({
-    files: [
-      {
-        attachment: "graph.png",
-        name: "graph.png",
-      },
-    ],
-  });
-
-  await fs.rm("graph.png");
 }
 
 main().catch((e) => {
