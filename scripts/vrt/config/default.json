@@ -1,0 +1,33 @@
+{
+  "pages": [
+    {
+      "name": "ホーム",
+      "path": "/"
+    },
+    {
+      "name": "Product 1",
+      "path": "/product/1"
+    },
+    {
+      "name": "Not Found",
+      "path": "/foo"
+    }
+  ],
+  "viewports": [
+    {
+      "name": "Pixel 5",
+      "width": 393,
+      "height": 851
+    },
+    {
+      "name": "Kindle Fire HDX",
+      "width": 800,
+      "height": 1280
+    },
+    {
+      "name": "Desktop",
+      "width": 1280,
+      "height": 720
+    }
+  ]
+}

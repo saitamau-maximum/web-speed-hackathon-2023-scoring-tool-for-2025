@@ -161,10 +161,59 @@ jobs:
             }
             return 'opened';
 
+  vrt:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+    if: needs.payload.outputs.competition-status == 'opened'
+    outputs:
+      details: ${{ steps.details.outputs.result }}
+      result: ${{ steps.result.outputs.result }}
+    concurrency: scoring-${{ fromJSON(needs.payload.outputs.result).id }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.2.0
+        with:
+          node-version: "22"
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: sudo apt-get install -y fonts-noto-cjk
+      - name: Run VRT
+        id: vrt
+        run: |
+          yarn run vrt:capture --url ${TARGET_URL}
+          yarn run vrt:detect
+        env:
+          TARGET_URL: ${{ fromJSON(needs.payload.outputs.result).url }}
+      - name: Upload payload
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: screenshots
+          path: ./scripts/vrt/tmp/*
+          retention-days: 1
+      - name: Read details
+        uses: actions/github-script@v7.0.1
+        id: details
+        with:
+          result-encoding: json
+          script: |
+            const payload = require('./scripts/vrt/tmp/reg.json');
+            return payload;
+      - name: Read result
+        uses: actions/github-script@v7.0.1
+        id: result
+        with:
+          result-encoding: string
+          script: |
+            const payload = require('./scripts/vrt/tmp/reg.json');
+            return payload.failedItems.length === 0 ? 'success' : 'failed';
+
   scoring:
     runs-on: ubuntu-latest
     needs:
       - payload
+      - vrt
     outputs:
       result: ${{ steps.scoring.outputs.export }}
     concurrency: scoring-${{ fromJSON(needs.payload.outputs.result).id }}
@@ -191,6 +240,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - payload
+      - vrt
       - scoring
     outputs:
       result: ${{ steps.update.outputs.export }}
@@ -257,9 +307,83 @@ jobs:
               comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## スコア
+              body: `## レギュレーションチェック
 
-            :hourglass_flowing_sand: **計測中です...**
+            :hourglass_flowing_sand: **VRT を実行しています**
+
+            ---
+
+            Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>`,
+            });
+
+  comment-failure-vrt:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+      - vrt
+      - comment-payload
+    if: always() && needs.vrt.result == 'failure'
+    steps:
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            github.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## レギュレーションチェック
+
+            :exclamation: **VRT が実行できませんでした**
+
+            次を確認してください
+
+            - URL が間違っていませんか
+            - API `POST /api/initialize` が実行できますか
+            - 計測対象のページは、誰でも閲覧できるようになっていますか
+            - エラーページ以外では、ステータスコードが 200 で返却されますか
+
+            ---
+
+            Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+
+            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
+            });
+
+  comment-vrt:
+    runs-on: ubuntu-latest
+    needs:
+      - payload
+      - vrt
+      - comment-payload
+    steps:
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            github.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## レギュレーションチェック
+
+            ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
+
+            <details>
+            <summary>差分が見つかったページ</summary>
+
+            - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
+
+            ```json
+            ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
+            ```
+
+            </details>
+
+            ## スコア
+
+            :hourglass_flowing_sand: **Lighthouse でスコアを計測しています**
 
             ---
 
@@ -270,7 +394,9 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - payload
+      - vrt
       - scoring
+      - comment-vrt
     if: always() && needs.scoring.result == 'failure'
     steps:
       - name: Comment
@@ -281,7 +407,22 @@ jobs:
               comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## スコア
+              body: `## レギュレーションチェック
+
+            ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
+
+            <details>
+            <summary>差分が見つかったページ</summary>
+
+            - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
+
+            ```json
+            ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
+            ```
+
+            </details>
+
+            ## スコア
 
             :exclamation: **Lighthouse の計測ができませんでした**
 
@@ -302,17 +443,35 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - payload
+      - vrt
       - scoring
+      - comment-vrt
     steps:
       - name: Comment
         uses: actions/github-script@v7.0.1
+        if: needs.vrt.outputs.result == 'success'
         with:
           script: |
             github.rest.issues.updateComment({
               comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## スコア
+              body: ` ## レギュレーションチェック
+
+            ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
+
+            <details>
+            <summary>差分が見つかったページ</summary>
+
+            - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
+
+            ```json
+            ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
+            ```
+
+            </details>
+
+            ## スコア
 
             スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
 
@@ -331,11 +490,58 @@ jobs:
 
             Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>`,
             });
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        if: needs.vrt.outputs.result != 'success'
+        with:
+          script: |
+            github.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## レギュレーションチェック
+
+            ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
+
+            <details>
+            <summary>差分が見つかったページ</summary>
+
+            - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
+
+            ```json
+            ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
+            ```
+
+            </details>
+
+            ## スコア
+
+            スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
+
+            :warning: VRT で差分があったため、リーダーボードには反映されません
+
+            <details>
+            <summary>buildInfo</summary>
+
+            ```json
+            ${{ toJSON(fromJSON(needs.scoring.outputs.result).buildInfo) }}
+            ```
+
+            </details>
+
+            ---
+
+            Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+
+            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
+            });
 
   comment-failure-update:
     runs-on: ubuntu-latest
     needs:
       - payload
+      - vrt
       - scoring
       - update
       - comment-scoring
@@ -349,7 +555,22 @@ jobs:
               comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## スコア
+              body: ` ## レギュレーション
+
+            ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
+
+            <details>
+            <summary>差分が見つかったページ</summary>
+
+            - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
+
+            ```json
+            ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
+            ```
+
+            </details>
+
+            ## スコア
 
             スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
 
@@ -376,6 +597,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - payload
+      - vrt
       - scoring
       - update
       - comment-scoring
@@ -388,7 +610,23 @@ jobs:
               comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## スコア
+              body: `
+            ## レギュレーションチェック
+
+            ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
+
+            <details>
+            <summary>差分が見つかったページ</summary>
+
+            - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
+
+            ```json
+            ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
+            ```
+
+            </details>
+
+            ## スコア
 
             スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
 

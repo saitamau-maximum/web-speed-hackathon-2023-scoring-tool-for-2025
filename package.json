@@ -5,7 +5,9 @@
   "scripts": {
     "build": "yarn workspaces foreach --all --parallel run build",
     "scoring": "yarn workspace @web-speed-hackathon/scoring start",
-    "update": "yarn workspace @web-speed-hackathon/update-leaderboard start"
+    "update": "yarn workspace @web-speed-hackathon/update-leaderboard start",
+    "vrt:capture": "yarn workspace @web-speed-hackathon/vrt capture",
+    "vrt:detect": "yarn workspace @web-speed-hackathon/vrt detect"
   },
   "workspaces": [
     "scripts/*"
