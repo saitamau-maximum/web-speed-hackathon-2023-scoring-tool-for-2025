@@ -75,4 +75,14 @@ Koyeb にデプロイする場合を例に説明します。
 - このレポジトリの issue から参加登録します
 - もう一度計測する場合は、issue に `/retry` とコメントします
 
-(c) CyberAgent
+## リーダーボード
+
+<!-- leaderboard:start -->
+<!-- leaderboard:end -->
+
+---
+
+このツールは独自実装です。
+Creative Commons 4.0 BY-NC-SA ライセンスで提供します。
+
+README において一部 [CyberAgentHack/web-speed-hackathon-2023-scoring-tool](https://github.com/CyberAgentHack/web-speed-hackathon-2023-scoring-tool) を引用しました。
