@@ -114,7 +114,7 @@ jobs:
             次を確認して、もう一度 issue を作り直してください
 
             - URL が間違っていませんか
-              - `http://` もしくは `https://` から始まる URL を入力してください
+              - \`http://\` もしくは \`https://\` から始まる URL を入力してください
             - issue の description を編集していませんか
               - issue の description から登録情報を読み込むため、編集しないでください
 
@@ -339,7 +339,7 @@ jobs:
             次を確認してください
 
             - URL が間違っていませんか
-            - API `POST /api/initialize` が実行できますか
+            - API \`POST /api/initialize\` が実行できますか
             - 計測対象のページは、誰でも閲覧できるようになっていますか
             - エラーページ以外では、ステータスコードが 200 で返却されますか
 
@@ -347,7 +347,7 @@ jobs:
 
             Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
 
-            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: \`/retry\` とコメントすると、もう一度計測ができます
             :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
             });
 
@@ -375,9 +375,9 @@ jobs:
 
             - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
 
-            ```json
+            \`\`\`json
             ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
-            ```
+            \`\`\`
 
             </details>
 
@@ -416,9 +416,9 @@ jobs:
 
             - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
 
-            ```json
+            \`\`\`json
             ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
-            ```
+            \`\`\`
 
             </details>
 
@@ -436,7 +436,7 @@ jobs:
 
             Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
 
-            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: \`/retry\` とコメントすると、もう一度計測ができます
             :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください
 
   comment-scoring:
@@ -465,9 +465,9 @@ jobs:
 
             - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
 
-            ```json
+            \`\`\`json
             ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
-            ```
+            \`\`\`
 
             </details>
 
@@ -508,9 +508,9 @@ jobs:
 
             - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
 
-            ```json
+            \`\`\`json
             ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
-            ```
+            \`\`\`
 
             </details>
 
@@ -523,9 +523,9 @@ jobs:
             <details>
             <summary>buildInfo</summary>
 
-            ```json
+            \`\`\`json
             ${{ toJSON(fromJSON(needs.scoring.outputs.result).buildInfo) }}
-            ```
+            \`\`\`
 
             </details>
 
@@ -533,7 +533,7 @@ jobs:
 
             Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
 
-            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: \`/retry\` とコメントすると、もう一度計測ができます
             :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
             });
 
@@ -555,7 +555,7 @@ jobs:
               comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: ` ## レギュレーション
+              body: `## レギュレーション
 
             ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
 
@@ -564,9 +564,9 @@ jobs:
 
             - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
 
-            ```json
+            \`\`\`json
             ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
-            ```
+            \`\`\`
 
             </details>
 
@@ -589,7 +589,7 @@ jobs:
 
             Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
 
-            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: \`/retry\` とコメントすると、もう一度計測ができます
             :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
             });
 
@@ -620,9 +620,9 @@ jobs:
 
             - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
 
-            ```json
+            \`\`\`json
             ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
-            ```
+            \`\`\`
 
             </details>
 
@@ -645,6 +645,6 @@ jobs:
 
             Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
 
-            :information_source: `/retry` とコメントすると、もう一度計測ができます
+            :information_source: \`/retry\` とコメントすると、もう一度計測ができます
             :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
             });
