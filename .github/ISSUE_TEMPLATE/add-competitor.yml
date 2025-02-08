@@ -1,6 +1,6 @@
 name: 参加登録
 description: Web Speed Hackathon 2023 の参加登録フォームです
-title: '[参加登録]'
+title: "[参加登録]"
 labels:
   - registration
 body:
@@ -9,7 +9,7 @@ body:
       value: |
         # ようこそ Web Speed Hackathon 2023 へ！
 
-        - 開催期間 | **2023/03/04 10:30 JST - 2023/03/05 17:30 JST**
+        - 開催期間 | **2025/02/10 10:30 JST - 2023/03/31 23:59 JST**
 
         **参加する前に、レギュレーションを確認してください**
 
@@ -18,7 +18,7 @@ body:
   - type: dropdown
     id: regulation
     attributes:
-      label: '注意事項・レギュレーション {{regulation}}'
+      label: "注意事項・レギュレーション {{regulation}}"
       options:
         - 注意事項・レギュレーションを確認して、同意しました
     validations:
@@ -32,17 +32,8 @@ body:
   - type: input
     id: target-url
     attributes:
-      label: '計測対象の URL {{url}}'
+      label: "計測対象の URL {{url}}"
       placeholder: e.g.) https://web-speed-hackathon-2023.example.com/
-    validations:
-      required: true
-  - type: dropdown
-    id: kind
-    attributes:
-      label: '登録区分 {{kind}}'
-      options:
-        - 学生
-        - 一般
     validations:
       required: true
   - type: markdown
@@ -52,4 +43,4 @@ body:
 
         投稿すると、GitHub Actions によって自動計測が始まります！
 
-        - :information_source: もし、1分以上何も反応がない場合は、issue を作り直してみてください
+        - :information_source: もし、 1 分以上何も反応がない場合は、 a01sa01to に連絡してください
