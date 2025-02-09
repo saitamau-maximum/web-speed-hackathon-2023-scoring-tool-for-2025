@@ -135,6 +135,30 @@ async function main() {
     header: true,
   });
   await fs.writeFile(argv["score-csv"], csv, "utf-8");
+
+  if (process.env.DISCORD_WEBHOOK_URL) {
+    logger.info("Notify leaderboard to Discord");
+    // discord cannot render markdown table, so use list instead
+    const discordMessage = `
+**Leaderboard updated!**
+
+${sortedScoreList.map(
+  (item) =>
+    `${item.rank}. ${item.competitorId} - ${Number(item.score).toFixed(2)}`
+)}
+    `.trim();
+    await fetch(process.env.DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content: discordMessage,
+      }),
+    });
+  } else {
+    logger.info("DISCORD_WEBHOOK_URL is not set, skip notifying to Discord");
+  }
 }
 
 main().catch((e) => {

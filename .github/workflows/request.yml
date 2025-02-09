@@ -9,6 +9,7 @@ on:
 env:
   TZ: "Asia/Tokyo"
   WSH_SCORING_DEBUG: "true"
+  DISCORD_WEBHOOK_URL: "${{ secrets.DISCORD_WEBHOOK_URL }}"
 
 jobs:
   register:
