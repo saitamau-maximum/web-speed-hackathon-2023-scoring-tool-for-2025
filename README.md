@@ -78,6 +78,11 @@ Koyeb にデプロイする場合を例に説明します。
 ## リーダーボード
 
 <!-- leaderboard:start -->
+
+|Rank|Score||CompetitorId|URL|
+|:--:|:--:|:--:|:--|:--:|
+|1|**8.55**|<img alt="" width="50" height="50" src="https://github.com/a01sa01to.png?size=100"/>|[@a01sa01to](https://github.com/a01sa01to)|[:link:](https://systematic-delilah-a01sa01to-755f4379.koyeb.app/)|
+
 <!-- leaderboard:end -->
 
 ---
