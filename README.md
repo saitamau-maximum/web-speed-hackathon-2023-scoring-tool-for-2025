@@ -81,7 +81,7 @@ Koyeb にデプロイする場合を例に説明します。
 
 |Rank|Score||CompetitorId|URL|
 |:--:|:--:|:--:|:--|:--:|
-|1|**193.35**|<img alt="" width="50" height="50" src="https://github.com/sor4chi.png?size=100"/>|[@sor4chi](https://github.com/sor4chi)|[:link:](https://wsh.sor4chi.com/)|
+|1|**208.50**|<img alt="" width="50" height="50" src="https://github.com/sor4chi.png?size=100"/>|[@sor4chi](https://github.com/sor4chi)|[:link:](https://wsh.sor4chi.com/)|
 |2|**55.60**|<img alt="" width="50" height="50" src="https://github.com/batora9.png?size=100"/>|[@batora9](https://github.com/batora9)|[:link:](https://web-speed-hackathon-2023-for-2025.fly.dev/)|
 |3|**46.80**|<img alt="" width="50" height="50" src="https://github.com/a01sa01to.png?size=100"/>|[@a01sa01to](https://github.com/a01sa01to)|[:link:](https://systematic-delilah-a01sa01to-755f4379.koyeb.app/)|
 |3|**46.80**|<img alt="" width="50" height="50" src="https://github.com/zerozero-0-0.png?size=100"/>|[@zerozero-0-0](https://github.com/zerozero-0-0)|[:link:](https://ashamed-justine-saitamauniversity-45b260cd.koyeb.app/)|
