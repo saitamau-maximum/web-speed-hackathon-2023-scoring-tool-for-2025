@@ -141,10 +141,9 @@ async function main() {
     // discord cannot render markdown table, so use list instead
     const discordMessage = `
 **Leaderboard updated!**
-
 ${sortedScoreList.map(
   (item) =>
-    `${item.rank}. ${item.competitorId} - ${Number(item.score).toFixed(2)}`
+    `${item.rank}. \`${item.competitorId}\` ${Number(item.score).toFixed(2)}`
 ).join("\n")}
     `.trim();
     await fetch(process.env.DISCORD_WEBHOOK_URL, {
