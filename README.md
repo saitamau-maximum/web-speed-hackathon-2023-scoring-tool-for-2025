@@ -81,7 +81,8 @@ Koyeb にデプロイする場合を例に説明します。
 
 |Rank|Score||CompetitorId|URL|
 |:--:|:--:|:--:|:--|:--:|
-|1|**8.55**|<img alt="" width="50" height="50" src="https://github.com/a01sa01to.png?size=100"/>|[@a01sa01to](https://github.com/a01sa01to)|[:link:](https://systematic-delilah-a01sa01to-755f4379.koyeb.app/)|
+|1|**47.70**|<img alt="" width="50" height="50" src="https://github.com/batora9.png?size=100"/>|[@batora9](https://github.com/batora9)|[:link:](https://web-speed-hackathon-2023-for-2025.fly.dev/)|
+|2|**8.55**|<img alt="" width="50" height="50" src="https://github.com/a01sa01to.png?size=100"/>|[@a01sa01to](https://github.com/a01sa01to)|[:link:](https://systematic-delilah-a01sa01to-755f4379.koyeb.app/)|
 
 <!-- leaderboard:end -->
 
