@@ -13,6 +13,7 @@ env:
 
 jobs:
   register:
+    name: Initialize and Prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: |
@@ -23,7 +24,7 @@ jobs:
         (github.actor == github.event.issue.user.login || github.actor == 'a01sa01to')
       )
     steps:
-      - name: Initialize
+      - name: "Initialize: Update Issue Title"
         uses: actions/github-script@v7.0.1
         with:
           script: |
@@ -33,7 +34,7 @@ jobs:
               repo: context.repo.repo,
               title: `[スコア] @${context.actor}`,
             });
-      - name: Comment
+      - name: "Initialize: Send Welcome Message"
         uses: actions/github-script@v7.0.1
         if: github.event_name == 'issues'
         with:
@@ -47,7 +48,7 @@ jobs:
             - :information_source: 計測中に、解決できない問題が発生した場合、 a01sa01to にご連絡ください
             - :information_source: 計測先 URL を変更するなど、登録内容を変更する場合は、 issue を閉じて作り直してください`,
             });
-      - name: Comment
+      - name: Send Prepare Message
         uses: actions/github-script@v7.0.1
         id: report-comment
         with:
@@ -61,7 +62,7 @@ jobs:
             });
 
             return comment.data.id;
-      - name: Parse issue's description
+      - name: Parse Issue Form
         id: parse
         uses: peter-murray/issue-forms-body-parser@v4.2.1
         with:
@@ -101,7 +102,7 @@ jobs:
           name: payload.json
           path: /tmp/payload.json
           retention-days: 1
-      - name: Failure message
+      - name: Send Failure Message
         if: failure()
         uses: actions/github-script@v7.0.1
         with:
@@ -125,6 +126,7 @@ jobs:
             });
 
   payload:
+    name: Generate Payload
     runs-on: ubuntu-latest
     needs:
       - register
@@ -145,7 +147,7 @@ jobs:
           script: |
             const payload = require('/tmp/payload.json');
             return payload;
-      - name: Check competition status
+      - name: Check Competition Status
         uses: actions/github-script@v7.0.1
         id: status
         with:
@@ -163,6 +165,7 @@ jobs:
             return 'opened';
 
   vrt:
+    name: VRT
     runs-on: ubuntu-latest
     needs:
       - payload
@@ -172,14 +175,19 @@ jobs:
       result: ${{ steps.result.outputs.result }}
     concurrency: scoring-${{ fromJSON(needs.payload.outputs.result).id }}
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.2.0
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+      - name: Setup Node
+        uses: actions/setup-node@v4.2.0
         with:
           node-version: "22"
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: sudo apt-get install -y fonts-noto-cjk
+      - name: Install deps
+        run: yarn install --immutable
+      - name: Build
+        run: yarn build
+      - name: Install fonts
+        run: sudo apt-get install -y fonts-noto-cjk
       - name: Run VRT
         id: vrt
         run: |
@@ -187,13 +195,13 @@ jobs:
           yarn run vrt:detect
         env:
           TARGET_URL: ${{ fromJSON(needs.payload.outputs.result).url }}
-      - name: Upload payload
+      - name: Upload Payload
         uses: actions/upload-artifact@v4.6.0
         with:
           name: screenshots
           path: ./scripts/vrt/tmp/*
           retention-days: 1
-      - name: Read details
+      - name: Read Details
         uses: actions/github-script@v7.0.1
         id: details
         with:
@@ -201,7 +209,7 @@ jobs:
           script: |
             const payload = require('./scripts/vrt/tmp/reg.json');
             return payload;
-      - name: Read result
+      - name: Read Result
         uses: actions/github-script@v7.0.1
         id: result
         with:
@@ -211,6 +219,7 @@ jobs:
             return payload.failedItems.length === 0 ? 'success' : 'failed';
 
   scoring:
+    name: Scoring
     runs-on: ubuntu-latest
     needs:
       - payload
@@ -219,14 +228,19 @@ jobs:
       result: ${{ steps.scoring.outputs.export }}
     concurrency: scoring-${{ fromJSON(needs.payload.outputs.result).id }}
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.2.0
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+      - name: Setup Node
+        uses: actions/setup-node@v4.2.0
         with:
           node-version: "22"
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: sudo apt-get install -y fonts-noto-cjk
+      - name: Install deps
+        run: yarn install --immutable
+      - name: Build
+        run: yarn build
+      - name: Install fonts
+        run: sudo apt-get install -y fonts-noto-cjk
       - name: Scoring
         id: scoring
         run: |
@@ -238,6 +252,7 @@ jobs:
           TARGET_URL: ${{ fromJSON(needs.payload.outputs.result).url }}
 
   update:
+    name: Update Leaderboard
     runs-on: ubuntu-latest
     needs:
       - payload
@@ -248,16 +263,20 @@ jobs:
       result: ${{ steps.update.outputs.export }}
     concurrency: update-leader-board
     steps:
-      - uses: actions/checkout@v4.2.2
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
         with:
           ref: main
-      - uses: actions/setup-node@v4.2.0
+      - name: Setup Node
+        uses: actions/setup-node@v4.2.0
         with:
           node-version: "22"
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - name: Update leader board
+      - name: Install deps
+        run: yarn install --immutable
+      - name: Build
+        run: yarn build
+      - name: Update Leaderboard
         id: update
         run: |
           yarn run update \
@@ -270,7 +289,7 @@ jobs:
           TARGET_ID: ${{ fromJSON(needs.payload.outputs.result).id }}
           TARGET_URL: ${{ fromJSON(needs.payload.outputs.result).url }}
           TARGET_SCORE: ${{ fromJSON(needs.scoring.outputs.result).result.score }}
-      - name: Commit leader board
+      - name: Commit Leaderboard
         uses: stefanzweifel/git-auto-commit-action@v5.1.0
         with:
           commit_user_name: "github-actions[bot]"
@@ -278,11 +297,12 @@ jobs:
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
 
   comment-payload:
+    name: Send Ready Comment
     runs-on: ubuntu-latest
     needs:
       - payload
     steps:
-      - name: Competition is Closed Comment
+      - name: Send "Competition is Closed"
         uses: actions/github-script@v7.0.1
         if: needs.payload.outputs.competition-status != 'opened'
         with:
@@ -300,7 +320,7 @@ jobs:
             :information_source: \`/retry\` とコメントすると、もう一度計測ができます
             :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
             });
-      - name: Comment
+      - name: Send "Running VRT"
         uses: actions/github-script@v7.0.1
         if: needs.payload.outputs.competition-status == 'opened'
         with:
@@ -319,6 +339,7 @@ jobs:
             });
 
   comment-failure-vrt:
+    name: VRT Failed Comment
     runs-on: ubuntu-latest
     needs:
       - payload
@@ -326,7 +347,7 @@ jobs:
       - comment-payload
     if: always() && needs.vrt.result == 'failure'
     steps:
-      - name: Comment
+      - name: Send Comment
         uses: actions/github-script@v7.0.1
         with:
           script: |
@@ -357,13 +378,14 @@ jobs:
             });
 
   comment-vrt:
+    name: VRT Done Comment
     runs-on: ubuntu-latest
     needs:
       - payload
       - vrt
       - comment-payload
     steps:
-      - name: Comment
+      - name: Send Comment
         uses: actions/github-script@v7.0.1
         with:
           script: |
@@ -396,6 +418,7 @@ jobs:
             });
 
   comment-failure-scoring:
+    name: Scoring Failed Comment
     runs-on: ubuntu-latest
     needs:
       - payload
@@ -404,7 +427,7 @@ jobs:
       - comment-vrt
     if: always() && needs.scoring.result == 'failure'
     steps:
-      - name: Comment
+      - name: Send Comment
         uses: actions/github-script@v7.0.1
         with:
           script: |
@@ -445,6 +468,7 @@ jobs:
             :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください
 
   comment-scoring:
+    name: Scoring Done Comment
     runs-on: ubuntu-latest
     needs:
       - payload
@@ -452,7 +476,7 @@ jobs:
       - scoring
       - comment-vrt
     steps:
-      - name: Comment
+      - name: Send Comment for VRT Success
         uses: actions/github-script@v7.0.1
         if: needs.vrt.outputs.result == 'success'
         with:
@@ -484,7 +508,7 @@ jobs:
 
             Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>`,
             });
-      - name: Comment
+      - name: Send Comment for VRT Failure
         uses: actions/github-script@v7.0.1
         if: needs.vrt.outputs.result != 'success'
         with:
@@ -532,6 +556,7 @@ jobs:
             });
 
   comment-failure-update:
+    name: Leaderboard Update Failed Comment
     runs-on: ubuntu-latest
     needs:
       - payload
@@ -541,7 +566,7 @@ jobs:
       - comment-scoring
     if: always() && needs.update.result == 'failure'
     steps:
-      - name: Comment
+      - name: Send Comment
         uses: actions/github-script@v7.0.1
         with:
           script: |
@@ -588,6 +613,7 @@ jobs:
             });
 
   comment-update:
+    name: Leaderboard Update Comment
     runs-on: ubuntu-latest
     needs:
       - payload
@@ -596,7 +622,7 @@ jobs:
       - update
       - comment-scoring
     steps:
-      - name: Comment
+      - name: Send Comment for VRT Success
         uses: actions/github-script@v7.0.1
         if: needs.vrt.outputs.result == 'success'
         with:
@@ -632,8 +658,7 @@ jobs:
             :information_source: \`/retry\` とコメントすると、もう一度計測ができます
             :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
             });
-
-      - name: Comment
+      - name: Send Comment for VRT Failure
         uses: actions/github-script@v7.0.1
         if: needs.vrt.outputs.result != 'success'
         with:
