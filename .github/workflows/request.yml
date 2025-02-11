@@ -243,6 +243,7 @@ jobs:
       - payload
       - vrt
       - scoring
+    if: needs.vrt.outputs.result == 'success'
     outputs:
       result: ${{ steps.update.outputs.export }}
     concurrency: update-leader-board
@@ -462,18 +463,7 @@ jobs:
               repo: context.repo.repo,
               body: ` ## レギュレーションチェック
 
-            ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
-
-            <details>
-            <summary>差分が見つかったページ</summary>
-
-            - :information_source: スクリーンショットは、スコア計測後に、Actions の Artifacts からダウンロードできます
-
-            \`\`\`json
-            ${{ toJSON(fromJSON(needs.vrt.outputs.details).failedItems) }}
-            \`\`\`
-
-            </details>
+            **差分はありませんでした**
 
             ## スコア
 
@@ -505,7 +495,7 @@ jobs:
               repo: context.repo.repo,
               body: `## レギュレーションチェック
 
-            ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
+            **一部のページに差分があります**
 
             <details>
             <summary>差分が見つかったページ</summary>
@@ -608,6 +598,7 @@ jobs:
     steps:
       - name: Comment
         uses: actions/github-script@v7.0.1
+        if: needs.vrt.outputs.result == 'success'
         with:
           script: |
             github.rest.issues.updateComment({
@@ -617,7 +608,44 @@ jobs:
               body: `
             ## レギュレーションチェック
 
-            ${{ (needs.vrt.outputs.result == 'success' && '**差分はありませんでした**') || '**一部のページに差分があります**' }}
+            **差分はありませんでした**
+
+            ## スコア
+
+            スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
+
+            現在、**${{ fromJSON(needs.update.outputs.result).rank }} 位**です
+
+            <details>
+            <summary>buildInfo</summary>
+
+            \`\`\`json
+            ${{ toJSON(fromJSON(needs.scoring.outputs.result).buildInfo) }}
+            \`\`\`
+
+            </details>
+
+            ---
+
+            Actions: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+
+            :information_source: \`/retry\` とコメントすると、もう一度計測ができます
+            :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
+            });
+
+      - name: Comment
+        uses: actions/github-script@v7.0.1
+        if: needs.vrt.outputs.result != 'success'
+        with:
+          script: |
+            github.rest.issues.updateComment({
+              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `
+            ## レギュレーションチェック
+
+            **一部のページに差分があります**
 
             <details>
             <summary>差分が見つかったページ</summary>
@@ -634,7 +662,7 @@ jobs:
 
             スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
 
-            現在、**${{ fromJSON(needs.update.outputs.result).rank }} 位**です
+            :warning: VRT で差分があったため、リーダーボードには反映されません
 
             <details>
             <summary>buildInfo</summary>
