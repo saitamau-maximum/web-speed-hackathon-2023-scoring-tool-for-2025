@@ -88,7 +88,7 @@ Koyeb にデプロイする場合を例に説明します。
 |5|**55.35**|<img alt="" width="50" height="50" src="https://github.com/nakamuraitsuki.png?size=100"/>|[@nakamuraitsuki](https://github.com/nakamuraitsuki)|[:link:](https://promising-gwenneth-nakamuraitsuki-545d2f94.koyeb.app/)|
 |6|**52.05**|<img alt="" width="50" height="50" src="https://github.com/nomanoma121.png?size=100"/>|[@nomanoma121](https://github.com/nomanoma121)|[:link:](https://defeated-dorthy-kouta0121-17276928.koyeb.app/)|
 |7|**46.80**|<img alt="" width="50" height="50" src="https://github.com/zerozero-0-0.png?size=100"/>|[@zerozero-0-0](https://github.com/zerozero-0-0)|[:link:](https://ashamed-justine-saitamauniversity-45b260cd.koyeb.app/)|
-|7|**46.80**|<img alt="" width="50" height="50" src="https://github.com/shigekk.png?size=100"/>|[@shigekk](https://github.com/shigekk)|[:link:](https://parallel-dyann-shigekk-f4784360.koyeb.app/)|
+|8|**13.65**|<img alt="" width="50" height="50" src="https://github.com/shigekk.png?size=100"/>|[@shigekk](https://github.com/shigekk)|[:link:](https://parallel-dyann-shigekk-f4784360.koyeb.app/)|
 
 <!-- leaderboard:end -->
 
