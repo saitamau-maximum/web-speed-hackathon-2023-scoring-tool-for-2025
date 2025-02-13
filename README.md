@@ -81,7 +81,7 @@ Koyeb にデプロイする場合を例に説明します。
 
 |Rank|Score||CompetitorId|URL|
 |:--:|:--:|:--:|:--|:--:|
-|1|**259.40**|<img alt="" width="50" height="50" src="https://github.com/sor4chi.png?size=100"/>|[@sor4chi](https://github.com/sor4chi)|[:link:](https://wsh.sor4chi.com/)|
+|1|**256.65**|<img alt="" width="50" height="50" src="https://github.com/sor4chi.png?size=100"/>|[@sor4chi](https://github.com/sor4chi)|[:link:](https://wsh.sor4chi.com/)|
 |2|**198.50**|<img alt="" width="50" height="50" src="https://github.com/seiei-n.png?size=100"/>|[@seiei-n](https://github.com/seiei-n)|[:link:](https://wsh-2023-practice.pages.dev/)|
 |3|**59.05**|<img alt="" width="50" height="50" src="https://github.com/batora9.png?size=100"/>|[@batora9](https://github.com/batora9)|[:link:](https://web-speed-hackathon-2023-for-2025.fly.dev/)|
 |4|**59.00**|<img alt="" width="50" height="50" src="https://github.com/a01sa01to.png?size=100"/>|[@a01sa01to](https://github.com/a01sa01to)|[:link:](https://systematic-delilah-a01sa01to-755f4379.koyeb.app/)|
