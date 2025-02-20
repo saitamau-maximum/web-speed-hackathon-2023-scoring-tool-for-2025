@@ -89,6 +89,7 @@ Koyeb にデプロイする場合を例に説明します。
 |6|**51.55**|<img alt="" width="50" height="50" src="https://github.com/nakamuraitsuki.png?size=100"/>|[@nakamuraitsuki](https://github.com/nakamuraitsuki)|[:link:](https://promising-gwenneth-nakamuraitsuki-545d2f94.koyeb.app/)|
 |7|**48.90**|<img alt="" width="50" height="50" src="https://github.com/shigekk.png?size=100"/>|[@shigekk](https://github.com/shigekk)|[:link:](https://sacred-wilow-shigekk-c1213da9.koyeb.app/)|
 |8|**46.80**|<img alt="" width="50" height="50" src="https://github.com/zerozero-0-0.png?size=100"/>|[@zerozero-0-0](https://github.com/zerozero-0-0)|[:link:](https://ashamed-justine-saitamauniversity-45b260cd.koyeb.app/)|
+|9|**13.65**|<img alt="" width="50" height="50" src="https://github.com/hana-rs.png?size=100"/>|[@hana-rs](https://github.com/hana-rs)|[:link:](https://straight-alyce-rsmaximum-b8c16eea.koyeb.app/)|
 
 <!-- leaderboard:end -->
 
