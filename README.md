@@ -85,7 +85,7 @@ Koyeb にデプロイする場合を例に説明します。
 |2|**258.40**|<img alt="" width="50" height="50" src="https://github.com/seiei-n.png?size=100"/>|[@seiei-n](https://github.com/seiei-n)|[:link:](https://wsh-2023-practice.pages.dev/)|
 |3|**255.55**|<img alt="" width="50" height="50" src="https://github.com/a01sa01to.png?size=100"/>|[@a01sa01to](https://github.com/a01sa01to)|[:link:](https://systematic-delilah-a01sa01to-755f4379.koyeb.app/)|
 |4|**217.55**|<img alt="" width="50" height="50" src="https://github.com/nakamuraitsuki.png?size=100"/>|[@nakamuraitsuki](https://github.com/nakamuraitsuki)|[:link:](https://promising-gwenneth-nakamuraitsuki-545d2f94.koyeb.app/)|
-|5|**157.40**|<img alt="" width="50" height="50" src="https://github.com/batora9.png?size=100"/>|[@batora9](https://github.com/batora9)|[:link:](https://web-speed-hackathon-2023-for-2025.fly.dev/)|
+|5|**206.55**|<img alt="" width="50" height="50" src="https://github.com/batora9.png?size=100"/>|[@batora9](https://github.com/batora9)|[:link:](https://web-speed-hackathon-2023-for-2025.fly.dev/)|
 |6|**52.05**|<img alt="" width="50" height="50" src="https://github.com/nomanoma121.png?size=100"/>|[@nomanoma121](https://github.com/nomanoma121)|[:link:](https://defeated-dorthy-kouta0121-17276928.koyeb.app/)|
 |7|**51.20**|<img alt="" width="50" height="50" src="https://github.com/shigekk.png?size=100"/>|[@shigekk](https://github.com/shigekk)|[:link:](https://sacred-wilow-shigekk-c1213da9.koyeb.app/)|
 |8|**46.80**|<img alt="" width="50" height="50" src="https://github.com/zerozero-0-0.png?size=100"/>|[@zerozero-0-0](https://github.com/zerozero-0-0)|[:link:](https://ashamed-justine-saitamauniversity-45b260cd.koyeb.app/)|
