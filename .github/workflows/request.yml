@@ -169,7 +169,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - payload
-    if: needs.payload.outputs.competition-status == 'opened'
+    # if: needs.payload.outputs.competition-status == 'opened'
     outputs:
       details: ${{ steps.details.outputs.result }}
       result: ${{ steps.result.outputs.result }}
@@ -258,7 +258,7 @@ jobs:
       - payload
       - vrt
       - scoring
-    if: needs.vrt.outputs.result == 'success'
+    if: needs.vrt.outputs.result == 'success' && needs.payload.outputs.competition-status == 'opened'
     outputs:
       result: ${{ steps.update.outputs.export }}
     concurrency: update-leader-board
@@ -302,27 +302,27 @@ jobs:
     needs:
       - payload
     steps:
-      - name: Send "Competition is Closed"
-        uses: actions/github-script@v7.0.1
-        if: needs.payload.outputs.competition-status != 'opened'
-        with:
-          script: |
-            github.rest.issues.updateComment({
-              comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `:warning: **スコアを計測できませんでした**
+      # - name: Send "Competition is Closed"
+      #   uses: actions/github-script@v7.0.1
+      #   if: needs.payload.outputs.competition-status != 'opened'
+      #   with:
+      #     script: |
+      #       github.rest.issues.updateComment({
+      #         comment_id: ${{ fromJSON(needs.payload.outputs.result).report_comment_id }},
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: `:warning: **スコアを計測できませんでした**
 
-            コンテスト開催前、もしくは、コンテストが終了しています
+      #       コンテスト開催前、もしくは、コンテストが終了しています
 
-            ---
+      #       ---
 
-            :information_source: \`/retry\` とコメントすると、もう一度計測ができます
-            :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
-            });
+      #       :information_source: \`/retry\` とコメントすると、もう一度計測ができます
+      #       :information_source: 登録内容を変更する場合は、issue を閉じて作り直してください`,
+      #       });
       - name: Send "Running VRT"
         uses: actions/github-script@v7.0.1
-        if: needs.payload.outputs.competition-status == 'opened'
+        # if: needs.payload.outputs.competition-status == 'opened'
         with:
           script: |
             github.rest.issues.updateComment({
@@ -493,7 +493,8 @@ jobs:
 
             スコアは **${{ fromJSON(needs.scoring.outputs.result).result.score }}** です
 
-            :hourglass_flowing_sand: リーダーボードを更新中です...
+            <!-- :hourglass_flowing_sand: リーダーボードを更新中です... -->
+            開催期間外なので、リーダーボードには反映されません
 
             <details>
             <summary>buildInfo</summary>
